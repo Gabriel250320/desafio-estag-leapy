@@ -1,5 +1,6 @@
--- Schemas fornecidos pelo usuário
 
+
+-- Tabela 1: internship_leaders (Depende apenas de directus_users)
 create table if not exists public.internship_leaders (
   id serial not null,
   status character varying(255) not null default 'draft'::character varying,
@@ -19,6 +20,28 @@ create index if not exists internship_leaders_department_idx on public.internshi
 create index if not exists internship_leaders_user_id_idx on public.internship_leaders using btree (user_id) tablespace pg_default;
 create index if not exists internship_leaders_phone_idx on public.internship_leaders using btree (phone_number) tablespace pg_default;
 
+
+-- Tabela 2: target_roles (Removida a dependência circular)
+create table if not exists public.target_roles (
+  id serial not null,
+  date_created timestamp with time zone null,
+  date_updated timestamp with time zone null,
+  date_deleted timestamp with time zone null,
+  name character varying(255) not null,
+  description text null,
+  important_skills json null,
+  success_criteria character varying(255) null,
+  talent_id uuid null,
+  required_skills json null,
+  talent_current_skills json null,
+  match real null default '0'::real,
+  constraint target_roles_name_unique unique (name),
+  constraint target_roles_pkey primary key (id)
+  -- A dependência de 'talents' será adicionada no final
+) tablespace pg_default;
+
+
+-- Tabela 3: talents (Removida a dependência circular)
 create table if not exists public.talents (
   id uuid not null,
   date_created timestamp with time zone null,
@@ -46,35 +69,31 @@ create table if not exists public.talents (
   constraint talents_phone_number_unique unique (phone_number),
   constraint talents_user_id_unique unique (user_id),
   constraint talents_leader_id_foreign foreign key (leader_id) references internship_leaders (id) on delete set null,
-  constraint talents_target_role_id_foreign foreign key (target_role_id) references target_roles (id) on delete set null,
+  -- A dependência de 'target_roles' será adicionada no final
   constraint talents_user_id_foreign foreign key (user_id) references directus_users (id)
 ) tablespace pg_default;
 
+-- Índices para talents (agora que a tabela foi criada)
 create index if not exists talents_user_id_idx on public.talents using btree (user_id) tablespace pg_default;
 create index if not exists talents_department_idx on public.talents using btree (department) tablespace pg_default;
 create index if not exists talents_leader_id_idx on public.talents using btree (leader_id) tablespace pg_default;
 create index if not exists talents_date_range_idx on public.talents using btree (start_date, end_date) tablespace pg_default;
 create index if not exists idx_talents_orchestrator_state on public.talents using btree (orchestrator_state) tablespace pg_default;
 create index if not exists idx_talents_reset_count on public.talents using btree (reset_count) tablespace pg_default;
-create index if not exists idx_talents_pdi_plan_ready on public.talents using btree (pdi_plan_ready) tablespace pg_default where (pdi_plan_ready = true);
+create index if not exists idx_talents_pdi_plan_ready on public.talents using btree (pdi_plan_ready) where (pdi_plan_ready = true);
 create index if not exists talents_target_role_id_idx on public.talents using btree (target_role_id) tablespace pg_default;
 create index if not exists talents_phone_idx on public.talents using btree (phone_number) tablespace pg_default;
 
-create table if not exists public.target_roles (
-  id serial not null,
-  date_created timestamp with time zone null,
-  date_updated timestamp with time zone null,
-  date_deleted timestamp with time zone null,
-  name character varying(255) not null,
-  description text null,
-  important_skills json null,
-  success_criteria character varying(255) null,
-  talent_id uuid null,
-  required_skills json null,
-  talent_current_skills json null,
-  match real null default '0'::real,
-  constraint target_roles_pkey primary key (id),
-  constraint target_roles_talent_id_foreign foreign key (talent_id) references talents (id) on delete cascade
-) tablespace pg_default;
 
+--
+-- ADICIONANDO AS CHAVES ESTRANGEIRAS QUE FORAM REMOVIDAS
+-- (Agora que ambas as tabelas 'talents' e 'target_roles' existem)
+--
 
+ALTER TABLE public.talents
+  ADD CONSTRAINT talents_target_role_id_foreign
+  FOREIGN KEY (target_role_id) REFERENCES public.target_roles(id) ON DELETE SET NULL;
+
+ALTER TABLE public.target_roles
+  ADD CONSTRAINT target_roles_talent_id_foreign
+  FOREIGN KEY (talent_id) REFERENCES public.talents(id) ON DELETE CASCADE;

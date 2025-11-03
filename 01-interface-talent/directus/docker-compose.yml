@@ -1,4 +1,3 @@
-version: "3.8"
 
 services:
   postgres:
@@ -12,8 +11,9 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
-      - ./seed/schema.sql:/docker-entrypoint-initdb.d/00_schema.sql:ro
-      - ./seed/seed.sql:/docker-entrypoint-initdb.d/10_seed.sql:ro
+      - ./seed:/tmp/seed:ro
+      #- ./seed/schema.sql:/docker-entrypoint-initdb.d/00_schema.sql:ro
+      #- ./seed/seed.sql:/docker-entrypoint-initdb.d/10_seed.sql:ro
 
   directus:
     image: directus/directus:10
