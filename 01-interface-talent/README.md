@@ -152,5 +152,3 @@ O seu **Backend** agora está 100% configurado e pronto em `http://localhost:805
 - **Qualidade de código:** O projeto utiliza TypeScript e segue uma arquitetura de Componentes de Servidor (para busca de dados e lógica de filtros) e Componentes de Cliente (para interatividade), garantindo que a lógica sensível rode apenas no servidor.
 - **Evitar N+1:** A busca de dados foi otimizada usando `Promise.all` em `app/page.tsx` para disparar as buscas de talentos e filtros dinâmicos (departamentos, status, cargos) em paralelo.
 
-## Screenshots da Aplicação
-
