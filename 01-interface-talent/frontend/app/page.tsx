@@ -138,12 +138,10 @@ async function getUniqueStatuses() {
 }
 
 async function getTargetRolesList() {
-  // Note que agora buscamos na coleção 'target_roles'
   const url = "http://localhost:8055/items/target_roles?fields=id,name&limit=-1";
   try {
     const res = await fetch(url, { cache: 'no-store' });
     const data = (await res.json()) as ApiTargetRolesResponse;
-    // Retorna a lista de cargos (ex: [{ id: 1, name: 'Dev' }, ...])
     return data.data; 
   } catch (error) { 
     console.error("Erro ao buscar cargos alvo:", error); 
